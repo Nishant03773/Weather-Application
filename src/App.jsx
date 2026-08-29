@@ -4,6 +4,7 @@ import axios from 'axios'
 
 const App = () => {
 
+    const [searched, setSearched] = useState(false);
     const [country, setCountry] = useState('')
     const [city, setCity] = useState('');
     const [region, setRegion] = useState('');
@@ -15,6 +16,7 @@ const App = () => {
     const [humidity,setHumidity] = useState('');
     const [maxTemperature,setMaxTemperature] = useState('');
     const [minTemperature,setMinTemperature] = useState('');
+    const [dayTemperature,setDayTemperature] = useState([]);
 
     const [location, setLocation] = useState('');
 
@@ -60,6 +62,7 @@ const App = () => {
         setMinTemperature(currentTemperature.data.daily.temperature_2m_min[0])
         setWindSpeed(currentTemperature.data.current.wind_speed_10m)
         setHumidity(currentTemperature.data.current.relative_humidity_2m)
+        setDayTemperature(currentTemperature.data.hourly.temperature_2m.slice(0,24))
     }
 
     useEffect(() => {
@@ -88,11 +91,13 @@ const App = () => {
         >
             <h1 className="text-[3rem]  lg:text-[2.7rem] font-inter font-medium text-center">Liquid Weather</h1>
             <p className="m text-center">Real-time atmospheric conditions in liquid glass</p>
+
             <div className="flex justify-center m-3 ">
                 <div className="relative w-full lg:w-92">
                     <form onSubmit={(event)=>{
                             event.preventDefault();
                             getCoordinates(location);
+                            setSearched(true);
                     }}>
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2" />
                         <input type="text" placeholder="Search city..." className="w-full rounded-full py-3 pl-11 pr-4 border-2" onChange={(e)=>{setLocation(e.target.value)}}/>
@@ -100,11 +105,12 @@ const App = () => {
 
                 </div>
             </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] w-full max-w-6xl gap-5 mt-9" >
                 <div className="p-5 rounded-3xl border border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
                     <div className="flex items-center justify-between ">
                         <h2 className="font-inter text-3xl font-bold">{city}</h2>
-                        <p className="border-2 py-2 px-3 rounded-full">Now</p>
+                        {!searched && <p className="border-2 py-2 px-3 rounded-full">Now</p> }
                     </div>
                     <p className="text-[1.2rem]">{region}, {country}</p>
                     <div className="flex items-center h-2/3 gap-5">
@@ -145,6 +151,25 @@ const App = () => {
                         <p className="font-bold text-2xl">{minTemperature}&deg;</p>
                     </div>
                 </div>
+            </div>
+
+
+            <div className="w-full max-w-6xl m-9">
+                <h2 className="font-inter text-xl mb-2">Hourly Forecast</h2>
+                <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
+                    {dayTemperature.map((e,idx)=>{
+
+                        return(
+                                <div className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
+                                    <p className="text-[1.2rem]">{String(idx).padStart(2, "0")}:00</p>
+                                    <CloudSunRain className="size-12 lg:size-10"/>
+                                    <p className="text-[1.1rem]" >{e}&deg;</p>
+
+                                </div>
+                            )
+                    })}
+                </div>
+
             </div>
 
         </div>
