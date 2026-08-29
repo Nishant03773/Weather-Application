@@ -68,8 +68,6 @@ const App = () => {
         setDayTemperature(currentTemperature.data.hourly.temperature_2m.slice(0,24))
         setCurrentWeatherCode(currentTemperature.data.current.weather_code);
         setHourlyWeatherCondition(currentTemperature.data.hourly.weather_code)
-        // console.log(currentTemperature.data.current.weather_code);
-        // console.log(currentTemperature.data.hourly.weather_code.slice(0,24));
     }
 
     useEffect(() => {
@@ -78,122 +76,122 @@ const App = () => {
         }
     },[latitude,longitude])
 
-    function getCurrentWeatherIcon(weatherCode) {
+    function getCurrentWeatherIcon(weatherCode,property) {
 
         if (weatherCode === 0) {
-            return <Sun className="size-12 lg:size-19" />;
+            return <Sun className={property} />;
         }
 
         else if (weatherCode === 1) {
-            return <CloudSun className="size-12 lg:size-19" />;
+            return <CloudSun className={property} />;
         }
 
         else if (weatherCode === 2) {
-            return <CloudSun className="size-12 lg:size-19" />;
+            return <CloudSun className={property} />;
         }
 
         else if (weatherCode === 3) {
-            return <Cloudy className="size-12 lg:size-19" />;
+            return <Cloudy className={property} />;
         }
 
         else if (weatherCode === 45) {
-            return <CloudFog className="size-12 lg:size-19" />;
+            return <CloudFog className={property} />;
         }
 
         else if (weatherCode === 48) {
-            return <CloudFog className="size-12 lg:size-19" />;
+            return <CloudFog className={property} />;
         }
 
         else if (weatherCode === 51) {
-            return <CloudDrizzle className="size-12 lg:size-19" />;
+            return <CloudDrizzle className={property} />;
         }
 
         else if (weatherCode === 53) {
-            return <CloudRain className="size-12 lg:size-19" />;
+            return <CloudRain className={property} />;
         }
 
         else if (weatherCode === 55) {
-            return <CloudRainWind className="size-12 lg:size-19" />;
+            return <CloudRainWind className={property} />;
         }
 
         else if (weatherCode === 56) {
-            return <CloudDrizzle className="size-12 lg:size-19" />;
+            return <CloudDrizzle className={property} />;
         }
 
         else if (weatherCode === 57) {
-            return <CloudRainWind className="size-12 lg:size-19" />;
+            return <CloudRainWind className={property} />;
         }
 
         else if (weatherCode === 61) {
-            return <CloudDrizzle className="size-12 lg:size-19" />;
+            return <CloudDrizzle className={property} />;
         }
 
         else if (weatherCode === 63) {
-            return <CloudRain className="size-12 lg:size-19" />;
+            return <CloudRain className={property} />;
         }
 
         else if (weatherCode === 65) {
-            return <CloudRainWind className="size-12 lg:size-19" />;
+            return <CloudRainWind className={property} />;
         }
 
         else if (weatherCode === 66) {
-            return <CloudRain className="size-12 lg:size-19" />;
+            return <CloudRain className={property} />;
         }
 
         else if (weatherCode === 67) {
-            return <Umbrella className="size-12 lg:size-19" />;
+            return <Umbrella className={property} />;
         }
 
         else if (weatherCode === 71) {
-            return <Snowflake className="size-12 lg:size-19" />;
+            return <Snowflake className={property} />;
         }
 
         else if (weatherCode === 73) {
-            return <CloudSnow className="size-12 lg:size-19" />;
+            return <CloudSnow className={property} />;
         }
 
         else if (weatherCode === 75) {
-            return <CloudSnow className="size-12 lg:size-19" />;
+            return <CloudSnow className={property} />;
         }
 
         else if (weatherCode === 77) {
-            return <Snowflake className="size-12 lg:size-19" />;
+            return <Snowflake className={property} />;
         }
 
         else if (weatherCode === 80) {
-            return <CloudDrizzle className="size-12 lg:size-19" />;
+            return <CloudDrizzle className={property} />;
         }
 
         else if (weatherCode === 81) {
-            return <CloudRain className="size-12 lg:size-19" />;
+            return <CloudRain className={property} />;
         }
 
         else if (weatherCode === 82) {
-            return <CloudRainWind className="size-12 lg:size-19" />;
+            return <CloudRainWind className={property} />;
         }
 
         else if (weatherCode === 85) {
-            return <CloudSnow className="size-12 lg:size-19" />;
+            return <CloudSnow className={property} />;
         }
 
         else if (weatherCode === 86) {
-            return <Snowflake className="size-12 lg:size-19" />;
+            return <Snowflake className={property} />;
         }
 
         else if (weatherCode === 95) {
-            return <CloudLightning className="size-12 lg:size-19" />;
+            return <CloudLightning className={property} />;
         }
 
         else if (weatherCode === 96) {
-            return <CloudHail className="size-12 lg:size-19" />;
+            return <CloudHail className={property} />;
         }
 
         else if (weatherCode === 99) {
-            return <CloudHail className="size-12 lg:size-19" />;
+            return <CloudHail className={property} />;
         }
 
         else {
-            return <Cloud className="size-12 lg:size-19" />;
+            return <Cloud className={property} />;
         }
     }
 
@@ -201,17 +199,15 @@ const App = () => {
 
 
     return (
-        <div
-            className="relative min-h-screen overflow-hidden text-white flex flex-col items-center p-12"
-            style={{
+        <div className="relative min-h-screen overflow-hidden text-white flex flex-col items-center p-12" style={{
                 background: `
             radial-gradient(circle at 5% 20%, rgba(100, 80, 180, 0.35), transparent 35%),
             radial-gradient(circle at 45% 75%, rgba(20, 150, 180, 0.25), transparent 35%),
             radial-gradient(circle at 95% 35%, rgba(170, 70, 160, 0.25), transparent 35%),
             #11121c
         `
-            }}
-        >
+            }}>
+
             <h1 className="text-[3rem]  lg:text-[2.7rem] font-inter font-medium text-center">Liquid Weather</h1>
             <p className="m text-center">Real-time atmospheric conditions in liquid glass</p>
 
@@ -239,7 +235,7 @@ const App = () => {
                     <div className="flex items-center h-2/3 gap-5">
                         <p className="text-7xl lg:text-9xl font-inter font-bold">{temperature}&deg;</p>
                         <div>
-                            {getCurrentWeatherIcon(currentWeatherCode)}
+                            {getCurrentWeatherIcon(currentWeatherCode,"size-12 lg:size-19")}
                             <p className="text-[0.8rem] lg:text-[1.2rem]" >Feels like {apparent_temperature}&deg;</p>
                         </div>
 
@@ -281,11 +277,10 @@ const App = () => {
                 <h2 className="font-inter text-xl mb-2">Hourly Forecast</h2>
                 <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
                     {dayTemperature.map((e,idx)=>{
-
                         return(
                                 <div key={idx} className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
                                     <p className="text-[1.2rem]">{String(idx).padStart(2, "0")}:00</p>
-                                    {/*{getWeatherIcon(currentWeatherCode[idx])}*/}
+                                    {getCurrentWeatherIcon(hourlyWeatherCondition[idx],"size-12 lg:size-9" )}
                                     <p className="text-[1.1rem]" >{e}&deg;</p>
 
                                 </div>
