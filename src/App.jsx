@@ -135,7 +135,7 @@ const App = () => {
 
 
     return (
-        <div className="relative min-h-screen overflow-hidden text-white flex flex-col items-center p-12" style={{
+        <div className="relative min-h-screen overflow-hidden text-white flex flex-col items-center p-8 lg:p-12" style={{
                 background: `
             radial-gradient(circle at 5% 20%, rgba(100, 80, 180, 0.35), transparent 35%),
             radial-gradient(circle at 45% 75%, rgba(20, 150, 180, 0.25), transparent 35%),
@@ -209,7 +209,7 @@ const App = () => {
 
             <div className="w-full max-w-6xl m-9">
                 <h2 className="font-inter text-xl mb-2">Hourly Forecast</h2>
-                <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
+                <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-44 w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
                     {dayTemperature.map((e,idx)=>{
                         const time = new Date(hourlyTime[idx]).toLocaleTimeString("en-US", {
                             hour: "numeric",
@@ -226,10 +226,9 @@ const App = () => {
                 </div>
 
             </div>
-
             <div className="w-full max-w-6xl m-9">
                 <h2 className="font-inter text-xl mb-2">6 Days Forecast</h2>
-                <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
+                <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-44 w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
                     {weeklyWeatherCode.map((e,idx)=>{
                         const day = new Date(`${weekdates[idx]}T12:00:00`)
                             .toLocaleDateString("en-US", {
