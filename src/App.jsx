@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { Search,Wind,MoveUp,MoveDown,Droplets,CloudSunRain} from "lucide-react";
+import { Search,Wind, Droplets, MoveUp, MoveDown, Sun, CloudSun, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudRainWind, CloudSnow, Snowflake, CloudLightning, CloudHail, Cloudy, Umbrella} from "lucide-react";
 import axios from 'axios'
 
 const App = () => {
@@ -17,8 +17,10 @@ const App = () => {
     const [maxTemperature,setMaxTemperature] = useState('');
     const [minTemperature,setMinTemperature] = useState('');
     const [dayTemperature,setDayTemperature] = useState([]);
-
     const [location, setLocation] = useState('');
+    const [currentWeatherCode,setCurrentWeatherCode] = useState();
+    const [hourlyWeatherCondition,setHourlyWeatherCondition] = useState();
+
 
     async function getCurrentLocation() {
         const currentLocation = await axios.get("https://ipapi.co/json/")
@@ -31,7 +33,8 @@ const App = () => {
     }
     useEffect(() => {
         getCurrentLocation()
-    },[])
+    },[]); {/*Current Location*/}
+
 
     async function getCoordinates(search){
         if (!search.trim()) return;
@@ -50,11 +53,11 @@ const App = () => {
         setCountry(coordinates.data.results[0].country || '')
 
 
-    }
+    } {/*Coordinates finder of the location*/}
 
     async function getWeather(latitude,longitude){
 
-        const currentTemperature = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature`)
+        const currentTemperature = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,weather_code`)
 
         setApparent_temperature(currentTemperature.data.current.apparent_temperature)
         setTemperature(currentTemperature.data.current.temperature_2m)
@@ -63,6 +66,10 @@ const App = () => {
         setWindSpeed(currentTemperature.data.current.wind_speed_10m)
         setHumidity(currentTemperature.data.current.relative_humidity_2m)
         setDayTemperature(currentTemperature.data.hourly.temperature_2m.slice(0,24))
+        setCurrentWeatherCode(currentTemperature.data.current.weather_code);
+        setHourlyWeatherCondition(currentTemperature.data.hourly.weather_code)
+        // console.log(currentTemperature.data.current.weather_code);
+        // console.log(currentTemperature.data.hourly.weather_code.slice(0,24));
     }
 
     useEffect(() => {
@@ -71,8 +78,124 @@ const App = () => {
         }
     },[latitude,longitude])
 
+    function getCurrentWeatherIcon(weatherCode) {
 
+        if (weatherCode === 0) {
+            return <Sun className="size-12 lg:size-19" />;
+        }
 
+        else if (weatherCode === 1) {
+            return <CloudSun className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 2) {
+            return <CloudSun className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 3) {
+            return <Cloudy className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 45) {
+            return <CloudFog className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 48) {
+            return <CloudFog className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 51) {
+            return <CloudDrizzle className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 53) {
+            return <CloudRain className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 55) {
+            return <CloudRainWind className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 56) {
+            return <CloudDrizzle className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 57) {
+            return <CloudRainWind className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 61) {
+            return <CloudDrizzle className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 63) {
+            return <CloudRain className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 65) {
+            return <CloudRainWind className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 66) {
+            return <CloudRain className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 67) {
+            return <Umbrella className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 71) {
+            return <Snowflake className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 73) {
+            return <CloudSnow className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 75) {
+            return <CloudSnow className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 77) {
+            return <Snowflake className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 80) {
+            return <CloudDrizzle className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 81) {
+            return <CloudRain className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 82) {
+            return <CloudRainWind className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 85) {
+            return <CloudSnow className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 86) {
+            return <Snowflake className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 95) {
+            return <CloudLightning className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 96) {
+            return <CloudHail className="size-12 lg:size-19" />;
+        }
+
+        else if (weatherCode === 99) {
+            return <CloudHail className="size-12 lg:size-19" />;
+        }
+
+        else {
+            return <Cloud className="size-12 lg:size-19" />;
+        }
+    }
 
 
 
@@ -96,7 +219,7 @@ const App = () => {
                 <div className="relative w-full lg:w-92">
                     <form onSubmit={(event)=>{
                             event.preventDefault();
-                            getCoordinates(location);
+                                getCoordinates(location);
                             setSearched(true);
                     }}>
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2" />
@@ -116,7 +239,7 @@ const App = () => {
                     <div className="flex items-center h-2/3 gap-5">
                         <p className="text-7xl lg:text-9xl font-inter font-bold">{temperature}&deg;</p>
                         <div>
-                            <CloudSunRain className="size-12 lg:size-19"/>
+                            {getCurrentWeatherIcon(currentWeatherCode)}
                             <p className="text-[0.8rem] lg:text-[1.2rem]" >Feels like {apparent_temperature}&deg;</p>
                         </div>
 
@@ -160,9 +283,9 @@ const App = () => {
                     {dayTemperature.map((e,idx)=>{
 
                         return(
-                                <div className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
+                                <div key={idx} className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
                                     <p className="text-[1.2rem]">{String(idx).padStart(2, "0")}:00</p>
-                                    <CloudSunRain className="size-12 lg:size-10"/>
+                                    {/*{getWeatherIcon(currentWeatherCode[idx])}*/}
                                     <p className="text-[1.1rem]" >{e}&deg;</p>
 
                                 </div>
