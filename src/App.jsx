@@ -20,7 +20,10 @@ const App = () => {
     const [location, setLocation] = useState('');
     const [currentWeatherCode,setCurrentWeatherCode] = useState();
     const [hourlyWeatherCondition,setHourlyWeatherCondition] = useState();
-
+    const [weeklyWeatherCode,setWeeklyWeatherCode] = useState([]);
+    const [weeklyMaxTemperature,setWeeklyMaxTemperature] = useState([]);
+    const [weeklyMinTemperature,setWeeklyMinTemperature] = useState([]);
+    const [weekdates, setWeekdates] = useState([]);
 
     async function getCurrentLocation() {
         const currentLocation = await axios.get("https://ipapi.co/json/")
@@ -57,7 +60,7 @@ const App = () => {
 
     async function getWeather(latitude,longitude){
 
-        const currentTemperature = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,weather_code`)
+        const currentTemperature = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&hourly=temperature_2m,weather_code&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,weather_code`)
 
         setApparent_temperature(currentTemperature.data.current.apparent_temperature)
         setTemperature(currentTemperature.data.current.temperature_2m)
@@ -68,6 +71,11 @@ const App = () => {
         setDayTemperature(currentTemperature.data.hourly.temperature_2m.slice(0,24))
         setCurrentWeatherCode(currentTemperature.data.current.weather_code);
         setHourlyWeatherCondition(currentTemperature.data.hourly.weather_code)
+        setWeeklyWeatherCode(currentTemperature.data.daily.weather_code)
+        setWeeklyMaxTemperature(currentTemperature.data.daily.temperature_2m_max)
+        setWeeklyMinTemperature(currentTemperature.data.daily.temperature_2m_min)
+        setWeekdates(currentTemperature.data.daily.time)
+
     }
 
     useEffect(() => {
@@ -76,7 +84,7 @@ const App = () => {
         }
     },[latitude,longitude])
 
-    function getCurrentWeatherIcon(weatherCode,property) {
+    function getWeatherIcon(weatherCode,property) {
 
         if (weatherCode === 0) {
             return <Sun className={property} />;
@@ -235,7 +243,7 @@ const App = () => {
                     <div className="flex items-center h-2/3 gap-5">
                         <p className="text-7xl lg:text-9xl font-inter font-bold">{temperature}&deg;</p>
                         <div>
-                            {getCurrentWeatherIcon(currentWeatherCode,"size-12 lg:size-19")}
+                            {getWeatherIcon(currentWeatherCode,"size-12 lg:size-19")}
                             <p className="text-[0.8rem] lg:text-[1.2rem]" >Feels like {apparent_temperature}&deg;</p>
                         </div>
 
@@ -272,7 +280,6 @@ const App = () => {
                 </div>
             </div>
 
-
             <div className="w-full max-w-6xl m-9">
                 <h2 className="font-inter text-xl mb-2">Hourly Forecast</h2>
                 <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
@@ -280,9 +287,8 @@ const App = () => {
                         return(
                                 <div key={idx} className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
                                     <p className="text-[1.2rem]">{String(idx).padStart(2, "0")}:00</p>
-                                    {getCurrentWeatherIcon(hourlyWeatherCondition[idx],"size-12 lg:size-9" )}
+                                    {getWeatherIcon(hourlyWeatherCondition[idx],"size-12 lg:size-12" )}
                                     <p className="text-[1.1rem]" >{e}&deg;</p>
-
                                 </div>
                             )
                     })}
@@ -290,6 +296,26 @@ const App = () => {
 
             </div>
 
+            <div className="w-full max-w-6xl m-9">
+                <h2 className="font-inter text-xl mb-2">6 Days Forecast</h2>
+                <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
+                    {weeklyWeatherCode.map((e,idx)=>{
+                        const day = new Date(`${weekdates[idx]}T12:00:00`)
+                            .toLocaleDateString("en-US", {
+                                weekday: "long"
+                            });
+                        return(
+                            <div key={idx} className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
+                                <p className="text-[1.2rem]">{day}</p>
+                                {getWeatherIcon(weeklyWeatherCode[idx],"size-12 lg:size-12" )}
+                                <p>{weeklyMaxTemperature[idx]}&deg; / {weeklyMinTemperature[idx]}&deg;</p>
+                            </div>
+                        )
+                    })}
+
+                </div>
+
+            </div>
         </div>
     )
 }
