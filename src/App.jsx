@@ -2,6 +2,37 @@ import React, {useEffect, useState} from 'react'
 import { Search,Wind, Droplets, MoveUp, MoveDown, Sun, CloudSun, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudRainWind, CloudSnow, Snowflake, CloudLightning, CloudHail, Cloudy, Umbrella} from "lucide-react";
 import axios from 'axios'
 
+const weatherIcons = {
+    0: Sun,
+    1: CloudSun,
+    2: CloudSun,
+    3: Cloudy,
+    45: CloudFog,
+    48: CloudFog,
+    51: CloudDrizzle,
+    53: CloudRain,
+    55: CloudRainWind,
+    56: CloudDrizzle,
+    57: CloudRainWind,
+    61: CloudDrizzle,
+    63: CloudRain,
+    65: CloudRainWind,
+    66: CloudRain,
+    67: Umbrella,
+    71: Snowflake,
+    73: CloudSnow,
+    75: CloudSnow,
+    77: Snowflake,
+    80: CloudDrizzle,
+    81: CloudRain,
+    82: CloudRainWind,
+    85: CloudSnow,
+    86: Snowflake,
+    95: CloudLightning,
+    96: CloudHail,
+    99: CloudHail
+};
+
 const App = () => {
 
     const [searched, setSearched] = useState(false);
@@ -24,6 +55,7 @@ const App = () => {
     const [weeklyMaxTemperature,setWeeklyMaxTemperature] = useState([]);
     const [weeklyMinTemperature,setWeeklyMinTemperature] = useState([]);
     const [weekdates, setWeekdates] = useState([]);
+    const [hourlyTime, setHourlyTime] = useState([]);
 
     async function getCurrentLocation() {
         const currentLocation = await axios.get("https://ipapi.co/json/")
@@ -41,40 +73,50 @@ const App = () => {
 
     async function getCoordinates(search){
         if (!search.trim()) return;
+        try{
+            const coordinates = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${search}&count=1&language=en&format=json`)
 
-        const coordinates = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${search}&count=1&language=en&format=json`)
-
-        if (!coordinates.data.results) {
-            alert("Location not found");
-            return;
+            if (!coordinates.data.results) {
+                alert("Location not found");
+                return;
+            }
+            setSearched(true);
+            setLatitude(coordinates.data.results[0].latitude)
+            setLongitude(coordinates.data.results[0].longitude)
+            setCity(coordinates.data.results[0].name)
+            setRegion(coordinates.data.results[0].admin1 || '')
+            setCountry(coordinates.data.results[0].country || '')
+        }
+        catch (error){
+            alert("Connection failed");
         }
 
-        setLatitude(coordinates.data.results[0].latitude)
-        setLongitude(coordinates.data.results[0].longitude)
-        setCity(coordinates.data.results[0].name)
-        setRegion(coordinates.data.results[0].admin1 || '')
-        setCountry(coordinates.data.results[0].country || '')
 
 
     } {/*Coordinates finder of the location*/}
 
     async function getWeather(latitude,longitude){
+        try{
+            const currentTemperature = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&hourly=temperature_2m,weather_code&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,weather_code`)
 
-        const currentTemperature = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&hourly=temperature_2m,weather_code&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,weather_code`)
-
-        setApparent_temperature(currentTemperature.data.current.apparent_temperature)
-        setTemperature(currentTemperature.data.current.temperature_2m)
-        setMaxTemperature(currentTemperature.data.daily.temperature_2m_max[0])
-        setMinTemperature(currentTemperature.data.daily.temperature_2m_min[0])
-        setWindSpeed(currentTemperature.data.current.wind_speed_10m)
-        setHumidity(currentTemperature.data.current.relative_humidity_2m)
-        setDayTemperature(currentTemperature.data.hourly.temperature_2m.slice(0,24))
-        setCurrentWeatherCode(currentTemperature.data.current.weather_code);
-        setHourlyWeatherCondition(currentTemperature.data.hourly.weather_code)
-        setWeeklyWeatherCode(currentTemperature.data.daily.weather_code)
-        setWeeklyMaxTemperature(currentTemperature.data.daily.temperature_2m_max)
-        setWeeklyMinTemperature(currentTemperature.data.daily.temperature_2m_min)
-        setWeekdates(currentTemperature.data.daily.time)
+            setApparent_temperature(currentTemperature.data.current.apparent_temperature)
+            setTemperature(currentTemperature.data.current.temperature_2m)
+            setMaxTemperature(currentTemperature.data.daily.temperature_2m_max[0])
+            setMinTemperature(currentTemperature.data.daily.temperature_2m_min[0])
+            setWindSpeed(currentTemperature.data.current.wind_speed_10m)
+            setHumidity(currentTemperature.data.current.relative_humidity_2m)
+            setDayTemperature(currentTemperature.data.hourly.temperature_2m.slice(0,24))
+            setCurrentWeatherCode(currentTemperature.data.current.weather_code);
+            setHourlyWeatherCondition(currentTemperature.data.hourly.weather_code)
+            setWeeklyWeatherCode(currentTemperature.data.daily.weather_code)
+            setWeeklyMaxTemperature(currentTemperature.data.daily.temperature_2m_max)
+            setWeeklyMinTemperature(currentTemperature.data.daily.temperature_2m_min)
+            setWeekdates(currentTemperature.data.daily.time)
+            setHourlyTime(currentTemperature.data.hourly.time.slice(0, 24));
+        }
+        catch (error) {
+            alert("Currently Website is not Working..")
+        }
 
     }
 
@@ -82,126 +124,12 @@ const App = () => {
         if(latitude && longitude){
             getWeather(latitude,longitude);
         }
-    },[latitude,longitude])
+    },[latitude,longitude]);{/*get weather when latitude and longitude changes*/ }
 
-    function getWeatherIcon(weatherCode,property) {
-
-        if (weatherCode === 0) {
-            return <Sun className={property} />;
-        }
-
-        else if (weatherCode === 1) {
-            return <CloudSun className={property} />;
-        }
-
-        else if (weatherCode === 2) {
-            return <CloudSun className={property} />;
-        }
-
-        else if (weatherCode === 3) {
-            return <Cloudy className={property} />;
-        }
-
-        else if (weatherCode === 45) {
-            return <CloudFog className={property} />;
-        }
-
-        else if (weatherCode === 48) {
-            return <CloudFog className={property} />;
-        }
-
-        else if (weatherCode === 51) {
-            return <CloudDrizzle className={property} />;
-        }
-
-        else if (weatherCode === 53) {
-            return <CloudRain className={property} />;
-        }
-
-        else if (weatherCode === 55) {
-            return <CloudRainWind className={property} />;
-        }
-
-        else if (weatherCode === 56) {
-            return <CloudDrizzle className={property} />;
-        }
-
-        else if (weatherCode === 57) {
-            return <CloudRainWind className={property} />;
-        }
-
-        else if (weatherCode === 61) {
-            return <CloudDrizzle className={property} />;
-        }
-
-        else if (weatherCode === 63) {
-            return <CloudRain className={property} />;
-        }
-
-        else if (weatherCode === 65) {
-            return <CloudRainWind className={property} />;
-        }
-
-        else if (weatherCode === 66) {
-            return <CloudRain className={property} />;
-        }
-
-        else if (weatherCode === 67) {
-            return <Umbrella className={property} />;
-        }
-
-        else if (weatherCode === 71) {
-            return <Snowflake className={property} />;
-        }
-
-        else if (weatherCode === 73) {
-            return <CloudSnow className={property} />;
-        }
-
-        else if (weatherCode === 75) {
-            return <CloudSnow className={property} />;
-        }
-
-        else if (weatherCode === 77) {
-            return <Snowflake className={property} />;
-        }
-
-        else if (weatherCode === 80) {
-            return <CloudDrizzle className={property} />;
-        }
-
-        else if (weatherCode === 81) {
-            return <CloudRain className={property} />;
-        }
-
-        else if (weatherCode === 82) {
-            return <CloudRainWind className={property} />;
-        }
-
-        else if (weatherCode === 85) {
-            return <CloudSnow className={property} />;
-        }
-
-        else if (weatherCode === 86) {
-            return <Snowflake className={property} />;
-        }
-
-        else if (weatherCode === 95) {
-            return <CloudLightning className={property} />;
-        }
-
-        else if (weatherCode === 96) {
-            return <CloudHail className={property} />;
-        }
-
-        else if (weatherCode === 99) {
-            return <CloudHail className={property} />;
-        }
-
-        else {
-            return <Cloud className={property} />;
-        }
-    }
+    function getWeatherIcon(weatherCode,property){
+        const Icon = weatherIcons[weatherCode] || Cloud
+        return <Icon className={property}/>
+    }{/*get weather icons*/ }
 
 
 
@@ -224,7 +152,6 @@ const App = () => {
                     <form onSubmit={(event)=>{
                             event.preventDefault();
                                 getCoordinates(location);
-                            setSearched(true);
                     }}>
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2" />
                         <input type="text" placeholder="Search city..." className="w-full rounded-full py-3 pl-11 pr-4 border-2" onChange={(e)=>{setLocation(e.target.value)}}/>
@@ -284,9 +211,13 @@ const App = () => {
                 <h2 className="font-inter text-xl mb-2">Hourly Forecast</h2>
                 <div className="hourly-scroll flex items-center px-5 overflow-x-auto gap-1 h-[24vh] w-full rounded-3xl border-white/20 bg-white/10 shadow-xl backdrop-blur-xl">
                     {dayTemperature.map((e,idx)=>{
+                        const time = new Date(hourlyTime[idx]).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            hour12: true
+                        })
                         return(
                                 <div key={idx} className="shrink-0 h-[90%] w-25 lg:w-[10%] flex flex-col justify-center items-center gap-1.5">
-                                    <p className="text-[1.2rem]">{String(idx).padStart(2, "0")}:00</p>
+                                    <p className="text-[1.2rem]">{time}</p>
                                     {getWeatherIcon(hourlyWeatherCondition[idx],"size-12 lg:size-12" )}
                                     <p className="text-[1.1rem]" >{e}&deg;</p>
                                 </div>
