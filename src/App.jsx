@@ -83,19 +83,18 @@ const weatherIcons = {
 };
 
 const App = () => {
-
-    const [searched, setSearched] = useState(false);
+    const [search, setSearch] = useState(false);
     const [country, setCountry] = useState('');
     const [city, setCity] = useState('');
     const [region, setRegion] = useState('');
     const [latitude, setLatitude] = useState('');
     const [longitude, setLongitude] = useState('');
-    const [temperature, setTemperature] = useState('');
-    const [apparent_temperature, setApparent_temperature] = useState('');
+    const [temperature, setTemperature] = useState();
+    const [apparent_temperature, setApparent_temperature] = useState();
     const [windSpeed, setWindSpeed] = useState('');
     const [humidity, setHumidity] = useState('');
-    const [maxTemperature, setMaxTemperature] = useState('');
-    const [minTemperature, setMinTemperature] = useState('');
+    const [maxTemperature, setMaxTemperature] = useState();
+    const [minTemperature, setMinTemperature] = useState();
     const [dayTemperature, setDayTemperature] = useState([]);
     const [location, setLocation] = useState('');
     const [currentWeatherCode, setCurrentWeatherCode] = useState();
@@ -103,9 +102,10 @@ const App = () => {
     const [weeklyWeatherCode, setWeeklyWeatherCode] = useState([]);
     const [weeklyMaxTemperature, setWeeklyMaxTemperature] = useState([]);
     const [weeklyMinTemperature, setWeeklyMinTemperature] = useState([]);
-    const [weekdates, setWeekdates] = useState([]);
+    const [weekdays, setWeekdays] = useState([]);
     const [hourlyTime, setHourlyTime] = useState([]);
-
+    const [recentSearch, setRecentSearch] = useState([])
+    const[localStorageData, setLocalStorageData] = useState([]);
     async function getCurrentLocation() {
         try {
             const currentLocation = await axios.get("https://ipwho.is/");
@@ -116,18 +116,16 @@ const App = () => {
                 setRegion(currentLocation.data.region);
                 setCountry(currentLocation.data.country);
             } else {
-                getCoordinates('London');
+
             }
         } catch (error) {
             console.error("CORS / Network Error getting location by IP:", error);
-            getCoordinates('London');
         }
     }
 
     useEffect(() => {
-        getCurrentLocation();
+        getCurrentLocation().then(()=>{});
     }, []);
-
     async function getCoordinates(search){
         if (!search.trim()) return;
         try{
@@ -137,12 +135,16 @@ const App = () => {
                 alert("Location not found");
                 return;
             }
-            setSearched(true);
+            setSearch(true);
+
             setLatitude(coordinates.data.results[0].latitude);
             setLongitude(coordinates.data.results[0].longitude);
             setCity(coordinates.data.results[0].name);
+            // noinspection JSUnresolvedReference
             setRegion(coordinates.data.results[0].admin1 || '');
             setCountry(coordinates.data.results[0].country || '');
+
+
         }
         catch (error){
             alert("Connection failed");
@@ -165,8 +167,29 @@ const App = () => {
             setWeeklyWeatherCode(currentTemperature.data.daily.weather_code);
             setWeeklyMaxTemperature(currentTemperature.data.daily.temperature_2m_max);
             setWeeklyMinTemperature(currentTemperature.data.daily.temperature_2m_min);
-            setWeekdates(currentTemperature.data.daily.time);
+            setWeekdays(currentTemperature.data.daily.time);
             setHourlyTime(currentTemperature.data.hourly.time.slice(0, 24));
+
+
+            if(search){
+                const newSearch = {
+                city: city,
+                region: region,
+                country: country,
+                temperature: currentTemperature.data.current.temperature_2m,
+                weatherCode: currentTemperature.data.current.weather_code
+                };
+                setRecentSearch(prev => {
+                    const updateSearch = [newSearch,...prev].slice(0,3);
+                    localStorage.setItem('result', JSON.stringify(updateSearch));
+                    return updateSearch;
+                });
+
+            }
+
+
+
+
         }
         catch (error) {
             alert("Currently Website is not Working..");
@@ -175,7 +198,7 @@ const App = () => {
 
     useEffect(() => {
         if(latitude && longitude){
-            getWeather(latitude, longitude);
+            getWeather(latitude, longitude).then(()=>{});
         }
     }, [latitude, longitude]);
 
@@ -185,36 +208,39 @@ const App = () => {
     }
 
     function getWeatherBackground(weatherCode){
-        return weatherIcons[weatherCode]?.[1] || '';
+        return weatherIcons[weatherCode]?.[1] || CLEAR_SKY_IMAGE_URL;
     }
 
+
     return (
-        <div className="min-h-screen bg-[#1c1b20] text-white flex justify-center items-center p-4 font-sans antialiased selection:bg-white/20">
+        <div className="min-h-screen bg-[#121214] text-white flex justify-center items-center p-4 font-sans antialiased selection:bg-white/20">
             {/* Custom styled horizontal scrollbar for hourly forecast */}
             <style>{`
                 .hourly-scroll::-webkit-scrollbar {
                     height: 6px;
                 }
                 .hourly-scroll::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.05);
+                    background: rgba(255, 255, 255, 0.03);
                     border-radius: 10px;
                 }
                 .hourly-scroll::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.15);
                     border-radius: 10px;
                 }
                 .hourly-scroll::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.4);
+                    background: rgba(255, 255, 255, 0.3);
                 }
             `}</style>
 
-            {/* Main Application Outer Container */}
-            <div className="w-full max-w-[1200px] bg-[#222126] rounded-[32px] p-6 lg:p-8 shadow-2xl border border-white/5 flex flex-col gap-6">
+            {/* Main Outer Glass Container */}
+            <div className="w-full max-w-300 bg-white/3 backdrop-blur-2xl rounded-4xl p-6 lg:p-8 shadow-2xl border border-white/10 flex flex-col gap-6">
 
                 {/* Header Bar */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 text-white/80 shrink-0" />
+                        <div className="p-2 bg-white/5 rounded-xl backdrop-blur-md border border-white/10">
+                            <MapPin className="w-4 h-4 text-white/90 shrink-0" />
+                        </div>
                         <div>
                             <h1 className="text-lg font-semibold text-white tracking-wide">
                                 {[city, region, country].filter(Boolean).join(', ') || 'Loading location...'}
@@ -226,11 +252,11 @@ const App = () => {
                     </div>
 
                     <div className="flex items-center gap-3 w-full sm:w-auto">
-                        {/* Location Search Input Component */}
+                        {/* Location Search Input Component with Glass effect */}
                         <form
                             onSubmit={(event) => {
                                 event.preventDefault();
-                                getCoordinates(location);
+                                getCoordinates(location).then(()=>{})
                             }}
                             className="relative flex-1 sm:w-72"
                         >
@@ -239,9 +265,9 @@ const App = () => {
                                 placeholder="Search location..."
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                className="w-full bg-[#2a292f] text-sm text-white placeholder-zinc-500 rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-1 focus:ring-white/30 border border-white/5"
+                                className="w-full bg-white/5 backdrop-blur-md text-sm placeholder-zinc-400 rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-1 focus:ring-white/30 border border-white/10 shadow-inner"
                             />
-                            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
+                            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-all">
                                 <Search className="w-4 h-4" />
                             </button>
                         </form>
@@ -254,27 +280,25 @@ const App = () => {
                     {/* Left Column (Main Weather Hero & Hourly/Daily Forecasts) */}
                     <div className="lg:col-span-2 flex flex-col gap-5">
 
-                        {/* Current Hero Card */}
-                        <div className="relative rounded-3xl overflow-hidden min-h-[220px] p-6 flex flex-col justify-between bg-zinc-900 border border-white/10 shadow-xl">
-
-                            {/* High-Visibility Atmospheric Cloud Background Image */}
+                        {/* Current Hero Glass Card */}
+                        <div className="relative rounded-3xl overflow-hidden min-h-55 p-6 flex flex-col justify-between bg-white/3 backdrop-blur-xl border border-white/10 shadow-xl">
+                            {/* High-Visibility Cloud Background Image Overlay */}
                             <div
-                                className="absolute inset-0 bg-cover bg-center opacity-65 transition-all duration-700 pointer-events-none"
+                                className="absolute inset-0 bg-cover bg-center opacity-50 transition-all duration-700 pointer-events-none"
                                 style={{ backgroundImage: `url(${getWeatherBackground(currentWeatherCode)})` }}
                             />
 
-                            {/* Soft Gradient Overlay for Text Legibility */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-900/40 to-transparent pointer-events-none" />
+                            {/* Subtle Glass Gradient Tint for Readability */}
+                            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
-                            {/* Hero Card Content */}
                             <div className="relative z-10 flex justify-between items-start">
                                 <div>
-                                    {/* Main Temperature & Weather Icon Display */}
+                                    {/* Main Temperature & Weather Glass Icon Badge */}
                                     <div className="flex items-center gap-4 mb-1">
                                         <div className="text-7xl lg:text-8xl font-light tracking-tighter drop-shadow-md">
-                                            {temperature !== '' ? `${Math.round(temperature)}°` : '--°'}
+                                            {temperature !== '' ? `${temperature}°` : '--°'}
                                         </div>
-                                        <div className="p-3.5 bg-black/40 rounded-2xl backdrop-blur-md border border-white/15 shadow-lg flex items-center justify-center shrink-0">
+                                        <div className="p-3.5 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center shrink-0">
                                             {getWeatherIcon(currentWeatherCode, "w-10 h-10 lg:w-12 lg:h-12 text-white")}
                                         </div>
                                     </div>
@@ -288,17 +312,17 @@ const App = () => {
                                     </div>
 
                                     <div className="flex gap-2 mt-3">
-                <span className="text-[11px] px-2.5 py-1 bg-black/40 rounded-full backdrop-blur-md text-zinc-200 border border-white/10">
-                    H {maxTemperature !== '' ? `${Math.round(maxTemperature)}°` : '--'}
-                </span>
-                                        <span className="text-[11px] px-2.5 py-1 bg-black/40 rounded-full backdrop-blur-md text-zinc-200 border border-white/10">
-                    L {minTemperature !== '' ? `${Math.round(minTemperature)}°` : '--'}
-                </span>
+                                        <span className="text-[11px] px-2.5 py-1 bg-white/10 rounded-full backdrop-blur-md text-zinc-200 border border-white/15 shadow-sm">
+                                            H {maxTemperature !== '' ? `${Math.round(maxTemperature)}°` : '--'}
+                                        </span>
+                                        <span className="text-[11px] px-2.5 py-1 bg-white/10 rounded-full backdrop-blur-md text-zinc-200 border border-white/15 shadow-sm">
+                                            L {minTemperature !== '' ? `${Math.round(minTemperature)}°` : '--'}
+                                        </span>
                                     </div>
                                 </div>
 
                                 {/* Weather Detail Note Box */}
-                                <div className="max-w-[200px] hidden sm:block bg-black/40 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 shadow-lg">
+                                <div className="max-w-50 hidden sm:block bg-black/40 backdrop-blur-md p-3.5 rounded-2xl border border-white/10 shadow-lg">
                                     <p className="text-[11px] text-zinc-200 leading-relaxed">
                                         With real-time data and advanced technology, we provide reliable forecasts for any location around the world.
                                     </p>
@@ -306,9 +330,9 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Hourly Forecast Block (24 Hours Scrollable) */}
-                        <div className="bg-[#2a292f]/60 rounded-3xl p-4 border border-white/5 backdrop-blur-sm">
-                            <h2 className="text-xs font-semibold text-zinc-400 mb-3 px-1">24-Hour Forecast</h2>
+                        {/* Hourly Forecast Glass Panel */}
+                        <div className="bg-white/3 rounded-3xl p-4 border border-white/10 backdrop-blur-xl shadow-lg">
+                            <h2 className="text-xs font-semibold text-zinc-400 mb-3 px-1 tracking-wide">24-HOUR FORECAST</h2>
                             <div className="hourly-scroll flex items-center overflow-x-auto gap-3 pb-2 pt-1">
                                 {dayTemperature.length > 0 ? (
                                     dayTemperature.map((temp, idx) => {
@@ -319,11 +343,11 @@ const App = () => {
                                         return (
                                             <div
                                                 key={idx}
-                                                className="min-w-[72px] shrink-0 py-3 px-2 rounded-2xl flex flex-col items-center justify-between gap-2 transition-all hover:bg-white/5"
+                                                className="min-w-18 shrink-0 py-3 px-2 rounded-2xl bg-white/2 border border-white/5 flex flex-col items-center justify-between gap-2 transition-all hover:bg-white/10 hover:border-white/20"
                                             >
                                                 <span className="text-xs font-medium text-zinc-400 whitespace-nowrap">{timeStr}</span>
                                                 <div className="my-1">
-                                                    {getWeatherIcon(hourlyWeatherCondition?.[idx], "w-5 h-5 text-zinc-300")}
+                                                    {getWeatherIcon(hourlyWeatherCondition?.[idx], "w-5 h-5 text-zinc-200")}
                                                 </div>
                                                 <span className="text-sm font-semibold">{Math.round(temp)}°</span>
                                             </div>
@@ -335,18 +359,18 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Weekly Forecast Cards */}
+                        {/* Weekly Forecast Glass Cards */}
                         <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
                             {weeklyWeatherCode.length > 0 ? (
                                 weeklyWeatherCode.slice(0, 7).map((code, idx) => {
-                                    const dayName = weekdates[idx]
-                                        ? new Date(`${weekdates[idx]}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" })
+                                    const dayName = weekdays[idx]
+                                        ? new Date(`${weekdays[idx]}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" })
                                         : '--';
 
                                     return (
                                         <div
                                             key={idx}
-                                            className="bg-[#2a292f]/60 border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-between gap-2 backdrop-blur-sm overflow-hidden"
+                                            className="bg-white/3 border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between gap-2 backdrop-blur-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all shadow-sm"
                                         >
                                             <span className="text-xs font-medium text-zinc-400">{dayName}</span>
                                             <div className="my-0.5">
@@ -371,13 +395,13 @@ const App = () => {
 
                     </div>
 
-                    {/* Right Column Details Side Panel */}
+                    {/* Right Column Details Side Glass Panel */}
                     <div className="flex flex-col gap-5">
 
-                        {/* Live Conditions Widget */}
-                        <div className="bg-[#2a292f]/60 rounded-3xl p-5 border border-white/5 backdrop-blur-sm flex flex-col justify-between">
+                        {/* Live Conditions Glass Widget */}
+                        <div className="bg-white/3 rounded-3xl p-5 border border-white/10 backdrop-blur-xl shadow-lg flex flex-col justify-between">
                             <div className="flex justify-between items-center mb-3">
-                                <span className="text-xs font-semibold text-zinc-300 tracking-wide">Live Conditions</span>
+                                <span className="text-xs font-semibold text-zinc-300 tracking-wide">LIVE CONDITIONS</span>
                                 <ChevronRight className="w-4 h-4 text-zinc-500" />
                             </div>
 
@@ -386,7 +410,7 @@ const App = () => {
                                     <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
                                     <span>23.8%</span>
                                 </div>
-                                <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-semibold rounded-full border border-amber-500/30">
+                                <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-semibold rounded-full border border-amber-500/30 backdrop-blur-md">
                                     Dangerous
                                 </span>
                             </div>
@@ -411,7 +435,7 @@ const App = () => {
                                 </svg>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/5 text-center">
+                            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10 text-center">
                                 <div>
                                     <div className="flex items-center justify-center gap-1 text-zinc-400 text-[11px] mb-1">
                                         <Droplets className="w-3 h-3" />
@@ -436,54 +460,46 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Recently Searched Panel */}
-                        <div className="bg-[#2a292f]/60 rounded-3xl p-5 border border-white/5 backdrop-blur-sm">
+                        {/* Recently Searched Glass Panel */}
+                        <div className="bg-white/3 rounded-3xl p-5 border border-white/10 backdrop-blur-xl shadow-lg">
                             <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-semibold text-zinc-300 tracking-wide">Recently Searched</span>
-                                <button className="text-[11px] text-zinc-500 hover:text-zinc-300">See All &gt;</button>
+                                <span className="text-xs font-semibold text-zinc-300 tracking-wide">RECENTLY SEARCHED</span>
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <div className="flex justify-between items-center p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white/5 rounded-xl text-amber-300">
-                                            <CloudSun className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold text-white">Liverpool, UK</div>
-                                            <div className="text-[10px] text-zinc-400">Partly Cloudy</div>
+                            {(JSON.parse(localStorage.getItem("result"))|| []).map((item,idx)=>{
+                                return(
+                                    <div key={idx} className="flex flex-col gap-3 my-2">
+                                        <div className="flex justify-between items-center p-2.5 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/10 hover:border-white/15 transition-all cursor-pointer">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white/10 rounded-xl text-amber-300 backdrop-blur-md">
+                                                    {getWeatherIcon(item.weatherCode,"w-5 h-5")}
+                                                    {/*<CloudSun className="w-5 h-5" />*/}
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-semibold text-white">{item.city}</div>
+                                                    <div className="text-[10px] text-zinc-400">{weatherIcons[item.weatherCode][2]}</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-base font-semibold">{item.temperature}</div>
                                         </div>
                                     </div>
-                                    <div className="text-base font-semibold">16°</div>
-                                </div>
+                                )
+                            })}
 
-                                <div className="flex justify-between items-center p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white/5 rounded-xl text-blue-300">
-                                            <CloudRain className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold text-white">Palermo, Italy</div>
-                                            <div className="text-[10px] text-zinc-400">Rain/Thunder</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-base font-semibold">-2°</div>
-                                </div>
-                            </div>
                         </div>
 
-                        {/* Wind Map Card */}
-                        <div className="relative rounded-3xl p-5 bg-[#2a292f]/60 border border-white/5 overflow-hidden backdrop-blur-sm min-h-[130px] flex flex-col justify-between">
-                            {/* Vector Map Line Decorative Graphic Overlay */}
-                            <div className="absolute inset-0 bg-[radial-gradient(#3a3842_1px,transparent_1px)] [background-size:12px_12px] opacity-40 pointer-events-none" />
+                        {/* Wind Map Glass Card */}
+                        <div className="relative rounded-3xl p-5 bg-white/3 border border-white/10 overflow-hidden backdrop-blur-xl min-h-32.5 flex flex-col justify-between shadow-lg">
+                            {/* Dot Matrix Graphic Overlay */}
+                            <div className="absolute inset-0 bg-[radial-gradient(#4a4856_1px,transparent_1px)] bg-size-[12px_12px] opacity-40 pointer-events-none" />
 
                             <div className="relative z-10">
-                                <span className="text-xs font-semibold text-zinc-400 block mb-2">Wind Map</span>
+                                <span className="text-xs font-semibold text-zinc-400 block mb-2 tracking-wide">WIND MAP</span>
                                 <div className="text-sm font-semibold">{windSpeed !== '' ? `${windSpeed} km/h` : '12 km/h'}</div>
                                 <div className="text-xs text-zinc-400">Northwest</div>
                             </div>
 
-                            <div className="absolute right-4 bottom-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white">
+                            <div className="absolute right-4 bottom-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-md">
                                 <Navigation className="w-4 h-4 rotate-45" />
                             </div>
                         </div>
